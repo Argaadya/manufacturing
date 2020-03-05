@@ -1,0 +1,3 @@
+"0","data_train <- downSample(x = data_train %>% select(-default), "
+"0","                         y = data_train$default,"
+"0","                         yname = ""default"")"

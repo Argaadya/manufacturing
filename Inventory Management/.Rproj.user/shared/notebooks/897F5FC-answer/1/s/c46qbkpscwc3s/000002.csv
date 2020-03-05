@@ -1,0 +1,15 @@
+"0","library(ROCR)"
+"2","Loading required package: gplots
+"
+"2","
+Attaching package: ‘gplots’
+
+"
+"2","The following object is masked from ‘package:stats’:
+
+    lowess
+
+"
+"0","pred_roc <- ROCR::prediction(pred_bayes[,2], labels = data_test$default)"
+"0","pred_perf <- performance(pred_roc, measure = ""tpr"", x.measure = ""fpr"")"
+"0","pred_perf %>% plot()"

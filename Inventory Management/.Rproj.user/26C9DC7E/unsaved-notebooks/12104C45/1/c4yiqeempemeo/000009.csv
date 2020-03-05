@@ -1,0 +1,3 @@
+"2","Error in ranger::ranger(formula = formula, data = data, mtry = ~3, num.trees = ~500,  : 
+  User interrupt or internal error.
+"

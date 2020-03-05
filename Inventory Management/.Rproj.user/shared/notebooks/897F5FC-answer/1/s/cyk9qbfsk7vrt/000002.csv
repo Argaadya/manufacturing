@@ -1,0 +1,1 @@
+"0","decision <- ctree(default ~., data = data_train, control = ctree_control(mincriterion = 0.1))"

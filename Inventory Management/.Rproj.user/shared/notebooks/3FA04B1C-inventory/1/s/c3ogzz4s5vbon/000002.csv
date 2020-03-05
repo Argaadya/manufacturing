@@ -1,0 +1,3 @@
+"0","pred_svm <- data.frame(actual = data_test$went_on_backorder) %>% "
+"0","  bind_cols(pred = predict(svm_model, data_test)) %>% "
+"0","  bind_cols(prob = predict(svm_model, data_test, type = ""prob""))"

@@ -1,0 +1,4 @@
+"0","expect_profit <- function(x){"
+"0"," profit <- x[2,1]*490 +  x[1,2]*0 + x[2,2]*(-20) + x[1,1]*(-50)"
+"0"," return(profit)"
+"0","}"

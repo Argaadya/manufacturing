@@ -1,0 +1,19 @@
+"0","table(Prediction = pred_test$.pred_class, Actual = pred_test$actual) %>% 
+  prop.table() %>% 
+  round(3) 
+"
+"1","          Actual
+"
+"1","Prediction"
+"1","   Yes"
+"1","    No"
+"1","
+       Yes"
+"1"," 0.007"
+"1"," 0.118"
+"1","
+       No "
+"1"," 0.001"
+"1"," 0.875"
+"1","
+"

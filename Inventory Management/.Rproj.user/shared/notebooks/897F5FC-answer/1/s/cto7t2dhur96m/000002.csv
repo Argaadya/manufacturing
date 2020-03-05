@@ -1,0 +1,2 @@
+"0","pred_test <- predict(decision, newdata = data_test, type = ""response"")"
+"0","pred_train <- predict(decision, newdata = data_train, type = ""response"")"

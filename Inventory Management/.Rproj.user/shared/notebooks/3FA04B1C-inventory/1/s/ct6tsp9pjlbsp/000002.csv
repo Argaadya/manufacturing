@@ -1,0 +1,18 @@
+"0","table(Prediction = pred_test$.pred_class,
+      Actual = pred_test$actual) 
+"
+"1","          Actual
+"
+"1","Prediction"
+"1","    Yes"
+"1","     No"
+"1","
+       Yes"
+"1","   2517"
+"1","  45434"
+"1","
+       No "
+"1","    278"
+"1"," 337757"
+"1","
+"

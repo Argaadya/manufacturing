@@ -1,0 +1,56 @@
+"0","loan <- read.csv(""loan.csv"")"
+"0","loan %>% glimpse()"
+"1","Observations: 1,000
+"
+"1","Variables: 17
+"
+"1","$ checking_balance     [3m[38;5;246m<fct>[39m[23m < 0 DM, 1 - 200 DM, unknown, < 0 DM, < 0 DM, unknown, unknown, 1 - 200 DM, unknown, 1 - 200 DM, 1 - 200 DM, < 0 DM, 1 - 200 DM, < 0 DM, < 0 D...
+"
+"1",""
+"1","$ months_loan_duration [3m[38;5;246m<int>[39m[23m 6, 48, 12, 42, 24, 36, 24, 36, 12, 30, 12, 48, 12, 24, 15, 24, 24, 30, 24, 24, 9, 6, 10, 12, 10, 6, 6, 12, 7, 60, 18, 24, 18, 12, 12, 45, 48,...
+"
+"1",""
+"1","$ credit_history       [3m[38;5;246m<fct>[39m[23m critical, good, critical, good, poor, good, good, good, good, critical, good, good, good, critical, good, good, critical, perfect, good, good...
+"
+"1",""
+"1","$ purpose              [3m[38;5;246m<fct>[39m[23m furniture/appliances, furniture/appliances, education, furniture/appliances, car, education, furniture/appliances, car, furniture/appliances,...
+"
+"1",""
+"1","$ amount               [3m[38;5;246m<int>[39m[23m 1169, 5951, 2096, 7882, 4870, 9055, 2835, 6948, 3059, 5234, 1295, 4308, 1567, 1199, 1403, 1282, 2424, 8072, 12579, 3430, 2134, 2647, 2241, 18...
+"
+"1",""
+"1","$ savings_balance      [3m[38;5;246m<fct>[39m[23m unknown, < 100 DM, < 100 DM, < 100 DM, < 100 DM, unknown, 500 - 1000 DM, < 100 DM, > 1000 DM, < 100 DM, < 100 DM, < 100 DM, < 100 DM, < 100 D...
+"
+"1",""
+"1","$ employment_duration  [3m[38;5;246m<fct>[39m[23m > 7 years, 1 - 4 years, 4 - 7 years, 4 - 7 years, 1 - 4 years, 1 - 4 years, > 7 years, 1 - 4 years, 4 - 7 years, unemployed, < 1 year, < 1 ye...
+"
+"1",""
+"1","$ percent_of_income    [3m[38;5;246m<int>[39m[23m 4, 2, 2, 2, 3, 2, 3, 2, 2, 4, 3, 3, 1, 4, 2, 4, 4, 2, 4, 3, 4, 2, 1, 3, 2, 1, 4, 3, 3, 3, 3, 2, 2, 4, 4, 4, 1, 4, 2, 4, 4, 3, 2, 1, 4, 4, 4, ...
+"
+"1",""
+"1","$ years_at_residence   [3m[38;5;246m<int>[39m[23m 4, 2, 3, 4, 4, 4, 4, 2, 4, 2, 1, 4, 1, 4, 4, 2, 4, 3, 2, 2, 4, 3, 3, 4, 1, 2, 4, 3, 2, 4, 3, 2, 2, 4, 1, 2, 3, 2, 2, 3, 2, 1, 4, 4, 4, 4, 4, ...
+"
+"1",""
+"1","$ age                  [3m[38;5;246m<int>[39m[23m 67, 22, 49, 45, 53, 35, 53, 35, 61, 28, 25, 24, 22, 60, 28, 32, 53, 25, 44, 31, 48, 44, 48, 44, 26, 36, 39, 42, 34, 63, 36, 27, 30, 57, 33, 2...
+"
+"1",""
+"1","$ other_credit         [3m[38;5;246m<fct>[39m[23m none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, bank, none, none, none, none, none, non...
+"
+"1",""
+"1","$ housing              [3m[38;5;246m<fct>[39m[23m own, own, own, other, other, other, own, rent, own, own, rent, rent, own, own, rent, own, own, own, other, own, own, rent, rent, own, own, ow...
+"
+"1",""
+"1","$ existing_loans_count [3m[38;5;246m<int>[39m[23m 2, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 3, 1, 1, 3, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, ...
+"
+"1",""
+"1","$ job                  [3m[38;5;246m<fct>[39m[23m skilled, skilled, unskilled, skilled, skilled, unskilled, skilled, management, unskilled, management, skilled, skilled, skilled, unskilled, s...
+"
+"1",""
+"1","$ dependents           [3m[38;5;246m<int>[39m[23m 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, ...
+"
+"1",""
+"1","$ phone                [3m[38;5;246m<fct>[39m[23m yes, no, no, no, no, yes, no, yes, no, no, no, no, yes, no, no, no, no, no, yes, yes, yes, no, no, no, no, yes, no, no, no, yes, yes, no, yes...
+"
+"1",""
+"1","$ default              [3m[38;5;246m<fct>[39m[23m no, yes, no, no, yes, no, no, no, no, yes, yes, yes, no, yes, no, yes, no, no, yes, no, no, no, no, no, no, no, no, no, no, yes, no, no, no, ...
+"

@@ -1,0 +1,8 @@
+"0","set.seed(123)
+
+rf_model <- fit_xy(object = model_spec, 
+                   x = data_train %>% select(-went_on_backorder), 
+                   y = data_train$went_on_backorder)
+"
+"2","
+"

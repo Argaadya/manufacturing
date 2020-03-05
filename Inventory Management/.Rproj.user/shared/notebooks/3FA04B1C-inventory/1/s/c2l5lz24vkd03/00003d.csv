@@ -1,0 +1,2 @@
+"0","pred_test %>% "
+"0","  roc_auc(actual, .pred_Yes)"

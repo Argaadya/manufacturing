@@ -1,0 +1,6 @@
+"0","predict(svm_model, data_test, type = ""a"")
+"
+"2","Error: unexpected symbol in:
+""predict(svm_model, data_test, type = ""a""
+predict""
+"

@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1582534445119.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B7D7795E",
+    "lastKnownWriteTime" : 1583357923,
+    "last_content_update" : 1583357923723,
+    "path" : "C:/algoritma/side project/manufacturing use case/inventory/inventory.Rmd",
+    "project_path" : "inventory.Rmd",
+    "properties" : {
+        "cursorPosition" : "533,94",
+        "docOutlineSize" : "161",
+        "docOutlineVisible" : "1",
+        "last_setup_crc32" : "",
+        "scrollLine" : "524",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

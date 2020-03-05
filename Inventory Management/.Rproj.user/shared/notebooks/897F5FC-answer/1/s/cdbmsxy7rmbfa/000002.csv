@@ -1,0 +1,2 @@
+"0","pred_test_raw <- predict(model_rf, newdata = data_test, type = ""raw"")"
+"0","pred_train_raw <- predict(model_rf, newdata = data_train, type = ""raw"")"

@@ -1,0 +1,2 @@
+"0","library(e1071)"
+"0","model_naive <- naiveBayes(data_train %>% select(-default), data_train$default, laplace = 1)"
