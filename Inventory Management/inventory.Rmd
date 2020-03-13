@@ -181,35 +181,29 @@ table(data_train$went_on_backorder) %>% prop.table()
 ## Model Fitting
 
 We will create a Random Forest model to predict the probability of an item to be went on backorder.
+```{r eval=FALSE}
+set.seed(123)
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, repeats = 3, allowParallel = T)
+
+rf_model <- train(went_on_backorder ~., 
+                  data = data_train, 
+                  method = "rf", trControl = ctrl)
+```
 
 ```{r}
-# define model spec
-model_spec <- rand_forest(mode = "classification", 
-                          mtry = 3, 
-                          trees = 500, 
-                          min_n = 1)
-
-# define model engine
-model_spec <- set_engine(model_spec, engine = "ranger", seed = 123, 
-                         num.threads = parallel::detectCores(), 
-                         importance = "impurity")
-
-# model fitting
-set.seed(123)
-
-rf_model <- fit_xy(object = model_spec, 
-                   x = data_train %>% select(-went_on_backorder), 
-                   y = data_train$went_on_backorder)
-
+rf_model <- read_rds("rf_model.Rds")
 rf_model
 ```
 
-The Random Forest model has **Out of Bag Error Rate** of 8%, so the accuracy of our model towards unseen data is around 92% based on the out of bag samples. However, since the target classes is highly imbalanced, we cannot take the accuracy metric at face value. We also need to check the other metrics, especially those that deals with the positive class: Recall and Precision.
+The Random Forest model has **Out of Bag Error Rate** of 9.7%, so the accuracy of our model towards unseen data is around 90% based on the out of bag samples. However, since the target classes is highly imbalanced, we cannot take the accuracy metric at face value. We also need to check the other metrics, especially those that deals with the positive class: Recall and Precision.
 
 ```{r}
 pred_test <- data.frame(actual = data_test$went_on_backorder) %>% 
   bind_cols(pred = predict(rf_model, data_test)) %>% 
   bind_cols(prob = predict(rf_model, data_test, type = "prob"))
+
+head(pred_test)
 ```
 
 ## Model Evaluation
@@ -219,7 +213,7 @@ pred_test <- data.frame(actual = data_test$went_on_backorder) %>%
 First, we inspect the confusion matrix. Confusion matrix shows how good our model in predicting the target (wheter the product went on back order or not).
 
 ```{r}
-table(Prediction = pred_test$.pred_class,
+table(Prediction = pred_test$pred,
       Actual = pred_test$actual) 
 ```
 
@@ -227,10 +221,10 @@ We can translate the confusion matrix into 4 metrics as follows.
 
 ```{r}
 pred_test %>% 
-  summarise(Accuracy = accuracy_vec(actual, .pred_class) %>% percent(accuracy = 0.001),
-            Recall = sens_vec(actual, .pred_class) %>% percent(accuracy = 0.001),
-            Specificity = spec_vec(actual, .pred_class) %>% percent(accuracy = 0.001),
-            Precision = precision_vec(actual, .pred_class) %>% percent(accuracy = 0.001))
+  summarise(Accuracy = accuracy_vec(actual, pred) %>% percent(accuracy = 0.001),
+            Recall = sens_vec(actual, pred) %>% percent(accuracy = 0.001),
+            Specificity = spec_vec(actual, pred) %>% percent(accuracy = 0.001),
+            Precision = precision_vec(actual, pred) %>% percent(accuracy = 0.001))
 ```
 
 The model has good performance in terms of recall, which means that the model can correctly predict positive class 90% of the time. This can also be interpreted that the model has low False Negative prediction: falsely predict a backorder case (positive) to be a negative one. This is great because if an item that should be on backorder but predicted as negative (no need to backorder), then we will loss revenues since our initial goal is to correctly identifiy if a product should went on backorder in order to fulfill the market demand. However, the Precision of our model is pretty low. This means that we have a lot of False Positive case (negative case predicted as need to backorder) compared to the True Positive (correctly predict that a product need a backorder). Therefore, we will end up ordering a lot of products and potentially we will have a huge inventory cost because most of the products will not sold quickly. This is an interesting dilemma. If the store owner wish to avoid any backorder at all cost (not accounting or undermining the inventory cost), then this model is great since it has high Recall. However, if the store owner want to consider the inventory cost and any other cost associated with ordering items, then we will need a better model or improve this one. We will choose the second option and see what we can do in order to minimize the damage of the cost associated with the False Positive case.
@@ -241,7 +235,7 @@ ROC Curve can be used to evaluate the model ability to distinguish the positive 
 
 ```{r}
 pred_test %>% 
-  roc_curve(actual, .pred_Yes) %>% 
+  roc_curve(actual, Yes) %>% 
   autoplot() +
   theme_minimal() +
   scale_x_continuous(breaks = seq(0,1,0.2))+
@@ -255,7 +249,7 @@ Based on the Curve, the model has satisying result. The low False Positive Rate 
 
 ```{r}
 pred_test %>% 
-  roc_auc(actual, .pred_Yes)
+  roc_auc(actual, Yes)
 ```
 
 ### Precision-Recall Curve
@@ -264,7 +258,7 @@ Another curve that we can use to observe the behaviour of our model is the Preci
 
 ```{r warning=FALSE, message=FALSE}
 pred_test %>% 
-  pr_curve(actual, .pred_Yes) %>% 
+  pr_curve(actual, Yes) %>% 
   filter(.threshold < Inf) %>% 
   pivot_longer(c(recall, precision), 
                names_to = "metric") %>% 
@@ -296,7 +290,7 @@ $$Expected\ Profit = P(TP)\ Benefit(TP) + P(TN)\ Benefit(TN) + P(FP)\ Benefit(FP
 The $P(TP)$ indicate the probability of the prediction to be a True Positve, while the $Benefit(TP)$ indicate how many benefit that we can get if it's true. For example, if the cost of ordering a product is 100 and the revenue is 150, let's try to calculate the data based on the confusion matrix of our model.
 
 ```{r}
-table(Prediction = pred_test$.pred_class, Actual = pred_test$actual) %>% 
+table(Prediction = pred_test$pred, Actual = pred_test$actual) %>% 
   prop.table() %>% 
   round(3) 
 ```
@@ -309,7 +303,7 @@ Let's break down the calculation into 4 points:
 - If the product belong to the False Negative case, then we would not get any revenue and don't have any cost as well. The benefit would be 0. However, we may want to consider any opportunity cost associated with the loss revenue due to unable to fulfill the demand. We can add opportunity cost of 50 so the benefit would be -50.
 - Calculate the expected profit:
 
-$$Expected\ Profit = 0.07\ 490 + 0.876\ 0 + 0.117\ (-20) + 0.001\ (-50) = -17.36$$
+$$Expected\ Profit = 0.07\ 490 + 0.876\ 0 + 0.116\ (-20) + 0.001\ (-50) = 1.06$$
 
 Based on the calculation above, we will get an expected profit of -17.36, which means that we will be more likely to have a lost and gain no profit.
 
@@ -318,7 +312,7 @@ I hope the illustration is clear enough before we go further. Now we will draw t
 First, we create the function to calculate the expected profit.
 ```{r}
 expect_profit <- function(x){
- profit <- x[2,1]*490 +  x[1,2]*0 + x[2,2]*(-20) + x[1,1]*(-50)
+ profit <- x["Yes","Yes"]*490 +  x["No", "Yes"]*0 + x["Yes","No"]*(-20) + x["No","Yes"]*(-50)
  return(profit)
 }
 ```
@@ -329,23 +323,26 @@ The next step is to draw the Profit Curve.
 profit_value <- matrix(nrow = nrow(pred_test), ncol = 3)
 
 # sort data
-pred_test <- pred_test %>% arrange(desc(.pred_Yes))
+pred_test <- pred_test %>% arrange(desc(Yes))
 
 # Sample 100 different thresholds
 for (i in seq(1, nrow(pred_test), nrow(pred_test)*0.01)) {
   
  # set threshold
- thres <- pred_test$.pred_Yes[i]
+ thres <- pred_test$Yes[i]
  profit_value[i, 1] <- thres
 
  # classify
  pred_test <- pred_test %>% 
-   mutate(predicted = ifelse(.pred_Yes < thres, "No", "Yes"))
+   mutate(predicted = ifelse(Yes < thres, "No", "Yes"))
  profit_value[i, 2] <- pred_test %>% filter(predicted == "Yes") %>% nrow()/nrow(pred_test)
  
  # expected profit
  confuse <- table(Prediction = pred_test$predicted, Actual = pred_test$actual) %>% 
-   prop.table()
+   prop.table() %>% 
+  rbind(matrix(0L, nrow = 2, ncol = 2) %>% `rownames<-`(c("No", "Yes"))) %>% 
+  unique()
+ 
  profit_value[i, 3] <- expect_profit(confuse)
 }
 
@@ -386,7 +383,7 @@ profit_value %>%
        x = "Threshold", y = "Expected Profit")
 ```
 
-Based on the Profit Curve, we will get a maximum expected value of only USD 1.65. We will expected a negative profit with threshold value of 0 to 0.45 and threshold closing to 1. The maximum expected profit may be not good enough for us since the value is so little. We need to improve our model. However, remember that the cost and profit is just an assumption. You may want to apply the method with the real profit and cost of each item.
+Based on the Profit Curve, we will get a maximum expected value of only USD 1.72. We will expected a negative profit with threshold value of 0 to around 0.4 and threshold closing to 1. The maximum expected profit may be not good enough for us since the value is so little. We need to improve our model. However, remember that the cost and profit is just an assumption. You may want to apply the method with the real profit and cost of each item.
 
 ## Model Improvement
 
@@ -415,24 +412,18 @@ table(data_train$went_on_backorder) %>%
 
 We fit the model the same way as the previous occasion.
 
-```{r}
-# define model spec
-model_spec <- rand_forest(mode = "classification", 
-                          mtry = 3, 
-                          trees = 500, 
-                          min_n = 1)
-
-# define model engine
-model_spec <- set_engine(model_spec, engine = "ranger", seed = 123, 
-                         num.threads = parallel::detectCores(), 
-                         importance = "impurity")
-
-# model fitting
+```{r eval=FALSE}
 set.seed(123)
-rf_model <- fit_xy(object = model_spec, 
-                   x = data_train %>% select(-went_on_backorder), 
-                   y = data_train$went_on_backorder)
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, repeats = 3, allowParallel = T)
 
+rf_model <- train(went_on_backorder ~., 
+                  data = data_train, 
+                  method = "rf", trControl = ctrl)
+```
+  
+```{r}
+rf_model <- read_rds("rf_model2.Rds")
 rf_model
 ```
 
@@ -448,22 +439,22 @@ pred_test <- data.frame(actual = data_test$went_on_backorder) %>%
   bind_cols(prob = predict(rf_model, data_test, type = "prob"))
 
 pred_test %>% 
-  summarise(Accuracy = accuracy_vec(actual, .pred_class) %>% percent(accuracy = 0.001),
-            Recall = sens_vec(actual, .pred_class) %>% percent(accuracy = 0.001),
-            Specificity = spec_vec(actual, .pred_class) %>% percent(accuracy = 0.001),
-            Precision = precision_vec(actual, .pred_class) %>% percent(accuracy = 0.001))
+  summarise(Accuracy = accuracy_vec(actual, pred) %>% percent(accuracy = 0.001),
+            Recall = sens_vec(actual, pred) %>% percent(accuracy = 0.001),
+            Specificity = spec_vec(actual, pred) %>% percent(accuracy = 0.001),
+            Precision = precision_vec(actual, pred) %>% percent(accuracy = 0.001))
 ```
 
-As we can see, the Recall drop significantly from 90% to 83%. However, the Precision only rise up to 8.9%.
+As we can see, the Recall drop significantly from 90% to 81%. However, the Precision only rise up to 10%.
 
 Let's also check the AUC of the current model and compare them with the previous model.
 
 ```{r}
 pred_test %>% 
-  roc_auc(actual, .pred_Yes)
+  roc_auc(actual, Yes)
 ```
 
-Our previous model only has AUC of 0.955 while our current model has AUC up to 0.963. This shows that our new improved model can perform slightly better.
+Our previous model only has AUC of 0.955 while our current model has AUC up to 0.959. This shows that our new improved model can perform slightly better.
 
 Now for the main part, let's check the Profit Curve as well.
 
@@ -471,22 +462,26 @@ Now for the main part, let's check the Profit Curve as well.
 profit_value <- matrix(nrow = nrow(pred_test), ncol = 3)
 
 # sort data
-pred_test <- pred_test %>% arrange(desc(.pred_Yes))
+pred_test <- pred_test %>% arrange(desc(Yes))
 
-for (i in seq(1, nrow(pred_test), nrow(pred_test)/100)) {
+# Sample 100 different thresholds
+for (i in seq(1, nrow(pred_test), nrow(pred_test)*0.01)) {
   
  # set threshold
- thres <- pred_test$.pred_Yes[i]
+ thres <- pred_test$Yes[i]
  profit_value[i, 1] <- thres
 
  # classify
  pred_test <- pred_test %>% 
-   mutate(predicted = ifelse(.pred_Yes < thres, "No", "Yes"))
+   mutate(predicted = ifelse(Yes < thres, "No", "Yes"))
  profit_value[i, 2] <- pred_test %>% filter(predicted == "Yes") %>% nrow()/nrow(pred_test)
  
  # expected profit
  confuse <- table(Prediction = pred_test$predicted, Actual = pred_test$actual) %>% 
-   prop.table()
+   prop.table() %>% 
+  rbind(matrix(0L, nrow = 2, ncol = 2) %>% `rownames<-`(c("No", "Yes"))) %>% 
+  unique()
+ 
  profit_value[i, 3] <- expect_profit(confuse)
 }
 
@@ -512,12 +507,12 @@ profit_value %>%
   geom_vline(xintercept = 0.5, linetype = "dashed", color = "skyblue4") +
   geom_vline(xintercept = max_profit$threshold, linetype = "dashed", color = "green") +
   geom_point(data = max_profit, size = 3) +
-  ggrepel::geom_text_repel(data= max_profit, box.padding = 2, nudge_x = 0.1,
+  ggrepel::geom_text_repel(data= max_profit, box.padding = 3, nudge_x = 0.1,
                            aes(label = glue::glue("Max Profit
                                                   {comma(expected_profit, accuracy = 0.01)}"))
                                ) +
   geom_point(data = current_profit, size = 3) +
-  ggrepel::geom_text_repel(data= current_profit, box.padding = 2, nudge_x = -0.1,
+  ggrepel::geom_text_repel(data= current_profit, box.padding = 2, nudge_x = 0.1,
                            aes(label = glue::glue("Current Profit
                                                   {comma(expected_profit, accuracy = 0.01)}"))
                                ) +
@@ -527,7 +522,7 @@ profit_value %>%
        x = "Threshold", y = "Expected Profit")
 ```
 
-With our current threshold (0.5), we can achieve an expected proft around USD 1.72. If we wish to get a maximum profit of USD 1.80, we can adjust the threshold to be around 0.64. The expected profit didn't increase much from the previous model. 
+With our current threshold (0.5), we can achieve an expected proft around USD 1.8. If we wish to get a maximum profit of USD 1.84, we can adjust the threshold to be around 0.55. The expected profit didn't increase much from the previous model. 
 
 # Conclusion
 
